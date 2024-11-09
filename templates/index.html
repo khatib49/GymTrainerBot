@@ -8,7 +8,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ask Your Questions!</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../static/css/style.css">
 </head>
 <h1> Rami Al Khatib</h1>
 <div class="botIcon">
@@ -49,18 +49,20 @@
 
 <script>
     jQuery(document).ready(function($) {
-        // Use 'event' parameter in event handlers
+        // Open chat window
         jQuery(document).on('click', '.iconInner', function(event) {
-            event.preventDefault(); // Prevent any default behavior (if needed)
+            event.preventDefault();
             jQuery(this).parents('.botIcon').addClass('showBotSubject');
             $("[name='msg']").focus();
         });
 
+        // Close chat window
         jQuery(document).on('click', '.closeBtn, .chat_close_icon', function(event) {
-            event.preventDefault(); // Prevent any default behavior (if needed)
+            event.preventDefault();
             jQuery(this).parents('.botIcon').removeClass('showBotSubject showMessenger');
         });
 
+        // Handle message submission
         jQuery(document).on('submit', '#messenger', function(event) {
             event.preventDefault();
 
@@ -70,42 +72,48 @@
             // Show the user's message
             userMsg(message);
 
-            // Send the message to the Flask backend
+            // Send the message to Flask backend
             sendToFlask(message);
         });
 
-        // Function to display the user's message
+        // Function to display user's message
         function userMsg(msg) {
             $('.Messages_list').append('<div class="msg user"><span class="avtr"><figure style="background-image: url(https://mrseankumar25.github.io/Sandeep-Kumar-Frontend-Developer-UI-Specialist/images/avatar.png)"></figure></span><span class="responsText">' + msg + '</span></div>');
-            $("[name='msg']").val("");
+            $("[name='msg']").val("");  // Clear input field
         };
 
-        // Function to display the bot's response
+        // Function to display bot's message
         function botMsg(msg) {
             const formattedMsg = msg.replace(/(?:\r\n|\r|\n)/g, '<br>');
             $('.Messages_list').append('<div class="msg"><span class="avtr"><figure style="background-image: url(https://mrseankumar25.github.io/Sandeep-Kumar-Frontend-Developer-UI-Specialist/images/avatar.png)"></figure></span><span class="responsText">' + formattedMsg + '</span></div>');
         };
 
-        // Function to send the message to the Flask backend
+        // Function to send message to Flask backend
         async function sendToFlask(message) {
             try {
                 const response = await fetch('http://127.0.0.1:5000/chat', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
                     body: JSON.stringify({ message: message })
                 });
 
+                // Check if the response is valid
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
                 const data = await response.json();
+                console.log("DATA:", JSON.stringify(data));
 
                 // Display the bot's response
-                console.log(" DATA : " + JSON.stringify(data) );
-                console.log ( "Response : " + data.response);
                 botMsg(data.response);
 
                 // Auto-scroll to the latest message
                 $(".Messages").animate({ scrollTop: $('.Messages')[0].scrollHeight }, 'slow');
             } catch (error) {
-                // Handle any errors
+                console.error("Error:", error);
                 botMsg("Oops! Something went wrong. Please try again later.");
             }
         }
